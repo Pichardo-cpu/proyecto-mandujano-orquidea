@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.vercel/
+.firebase/
+.vscode/
+.agents/
+firebase-service-account*.json
+backend/config/firebase-service-account.json
+backend/.env
+*.log
+desktop.ini
+Thumbs.db
