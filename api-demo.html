@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REFRICAZ - Prueba de API</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    main { max-width: 720px; margin: 40px auto; padding: 0 16px; font-family: system-ui, sans-serif; }
+    input, button { padding: 10px; font-size: 1rem; }
+    pre { background: #f1f3f5; padding: 12px; border-radius: 6px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Prueba de la API</h1>
+    <p>Este frontend (puerto 8080) consume el backend (puerto 8000).
+       Documentación: <a id="enlace-docs" href="http://localhost:8000/api-docs">/api-docs</a></p>
+
+    <p>Estado: <strong id="estado">comprobando...</strong></p>
+
+    <form id="formulario">
+      <input id="criterio" value="Guadalajara" minlength="2" required>
+      <button type="submit">Buscar ubicación</button>
+    </form>
+    <pre id="resultado">Escribe un lugar y pulsa buscar.</pre>
+    <p><a href="/">Volver al inicio</a></p>
+  </main>
+
+  <script>
+    const API_URL = "http://localhost:8000";
+    const estado = document.getElementById("estado");
+    const resultado = document.getElementById("resultado");
+
+    fetch(`${API_URL}/`)
+      .then((r) => r.json())
+      .then((d) => { estado.textContent = `${d.status} - ${d.message}`; })
+      .catch(() => { estado.textContent = "sin conexión con la API"; });
+
+    document.getElementById("formulario").addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      const criterio = document.getElementById("criterio").value.trim();
+      resultado.textContent = "Buscando...";
+      try {
+        const r = await fetch(`${API_URL}/api/ubicaciones/${encodeURIComponent(criterio)}`);
+        resultado.textContent = JSON.stringify(await r.json(), null, 2);
+      } catch {
+        resultado.textContent = "No se pudo conectar con la API.";
+      }
+    });
+  </script>
+</body>
+</html>

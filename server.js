@@ -1,46 +1,129 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+require("dotenv").config();
 
-// 1. Cargar variables de entorno desde dotenv
-require('dotenv').config();
+const http = require("node:http");
 
-// 2. Usar los archivos que SÍ existen en tu raíz
-const recursosRouter = require('./routers');
-const { noEncontrado, manejadorErrores } = require('./middlewares-errores');
+const {
+  manejarRutaUbicacionesGuardadas
+} = require("./routes/ubicaciones-guardadas.routes");
 
-const app = express();
+const {
+  manejarRutaUbicaciones
+} = require("./routes/ubicaciones.routes");
 
-// Configuración de origen
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5500';
-const port = process.env.PORT || 3000;
+const {
+  manejarRutaDocs
+} = require("./routes/docs.routes");
 
-// Cabeceras de Seguridad y CORS Restrictivo
-app.use(helmet());
-app.use(
-    cors({
-        origin: corsOrigin,
-        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-    })
+const PORT = process.env.PORT || 8000;
+const HOST = "0.0.0.0";
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:8080";
+
+// =====================================================
+// MIDDLEWARE CORS
+// El origen permitido se toma de la variable CORS_ORIGIN.
+// =====================================================
+function aplicarCors(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", CORS_ORIGIN);
+  res.setHeader("Vary", "Origin");
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-User-Id"
+  );
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
+
+  return false;
+}
+
+const server = http.createServer((req, res) => {
+  if (aplicarCors(req, res)) {
+    return;
+  }
+
+  // Documentación OpenAPI / Swagger UI: GET /api-docs
+  if (manejarRutaDocs(req, res)) {
+    return;
+  }
+
+  if (manejarRutaUbicacionesGuardadas(req, res)) {
+    return;
+  }
+
+  // ===================================================
+  // HEALTH CHECK
+  // GET /
+  // ===================================================
+  if (req.method === "GET" && req.url === "/") {
+    res.writeHead(200, {
+      "Content-Type": "application/json; charset=utf-8"
+    });
+
+    res.end(
+      JSON.stringify(
+        {
+          status: "online",
+          message: "Servidor REFRICAZ funcionando",
+          fase: 2,
+          server_time: new Date().toISOString()
+        },
+        null,
+        2
+      )
+    );
+
+    return;
+  }
+
+  // ===================================================
+  // FASE 2 - BÚSQUEDA DE UBICACIONES
+  // GET /api/ubicaciones/:criterio
+  // ===================================================
+  if (manejarRutaUbicaciones(req, res)) {
+    return;
+  }
+
+  // ===================================================
+  // RUTA NO ENCONTRADA
+  // ===================================================
+  res.writeHead(404, {
+    "Content-Type": "application/json; charset=utf-8"
+  });
+
+  res.end(
+    JSON.stringify(
+      {
+        status: "error",
+        message: "Ruta no encontrada"
+      },
+      null,
+      2
+    )
+  );
+});
+
+server.listen(PORT, HOST, () => {
+  console.log("========================================");
+  console.log("  REFRICAZ - Backend Fase 3");
+  console.log("========================================");
+  console.log(`Servidor activo en el puerto ${PORT}`);
+  console.log(`Health Check: http://127.0.0.1:${PORT}/`);
+  console.log(
+    `Ubicaciones: http://127.0.0.1:${PORT}/api/ubicaciones/Guadalajara`
+  );
+  console.log(
+  `CRUD Firestore: http://127.0.0.1:${PORT}/api/ubicaciones-guardadas`
 );
-
-// Middlewares de Lectura y Logs
-app.use(express.json({ limit: '100kb' }));
-app.use(morgan(process.env.LOG_LEVEL || 'dev'));
-
-// Servir Frontend Estático (o raíz)
-app.use(express.static('.'));
-
-// Rutas de la API
-app.use('/api', recursosRouter);
-
-// Manejo Centralizado de Errores (SIEMPRE AL FINAL)
-app.use(noEncontrado);
-app.use(manejadorErrores);
-
-// Arrancar Servidor
-app.listen(port, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${port}`);
+  console.log(`Documentación: http://127.0.0.1:${PORT}/api-docs`);
+  console.log(`CORS: ${CORS_ORIGIN}`);
+  console.log("Presiona Ctrl + C para detener el servidor.");
 });
