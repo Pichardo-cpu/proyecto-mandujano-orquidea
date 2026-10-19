@@ -10,15 +10,19 @@ const {
   manejarRutaUbicaciones
 } = require("./routes/ubicaciones.routes");
 
+// =====================================================
+// VALIDACIÓN DE ARRANQUE (BUENAS PRÁCTICAS)
+// =====================================================
 const PORT = process.env.PORT || 8000;
 const HOST = "0.0.0.0";
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://127.0.0.1:5600";
 
 // =====================================================
-// MIDDLEWARE CORS
-// Durante el desarrollo se acepta cualquier origen.
+// MIDDLEWARE CORS RESTRICTIVO
 // =====================================================
 function aplicarCors(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // En lugar de "*", usamos la variable de entorno restrictiva
+  res.setHeader("Access-Control-Allow-Origin", CORS_ORIGIN);
 
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -44,9 +48,10 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-if (manejarRutaUbicacionesGuardadas(req, res)) {
-  return;
-}
+  if (manejarRutaUbicacionesGuardadas(req, res)) {
+    return;
+  }
+
   // ===================================================
   // HEALTH CHECK
   // GET /
@@ -61,7 +66,7 @@ if (manejarRutaUbicacionesGuardadas(req, res)) {
         {
           status: "online",
           message: "Servidor REFRICAZ funcionando",
-          fase: 2,
+          fase: 3,
           server_time: new Date().toISOString()
         },
         null,
@@ -73,7 +78,7 @@ if (manejarRutaUbicacionesGuardadas(req, res)) {
   }
 
   // ===================================================
-  // FASE 2 - BÚSQUEDA DE UBICACIONES
+  // BÚSQUEDA DE UBICACIONES
   // GET /api/ubicaciones/:criterio
   // ===================================================
   if (manejarRutaUbicaciones(req, res)) {
@@ -81,7 +86,7 @@ if (manejarRutaUbicacionesGuardadas(req, res)) {
   }
 
   // ===================================================
-  // RUTA NO ENCONTRADA
+  // RUTA NO ENCONTRADA (404 EN JSON)
   // ===================================================
   res.writeHead(404, {
     "Content-Type": "application/json; charset=utf-8"
@@ -101,16 +106,10 @@ if (manejarRutaUbicacionesGuardadas(req, res)) {
 
 server.listen(PORT, HOST, () => {
   console.log("========================================");
-  console.log("  REFRICAZ - Backend Fase 3");
+  console.log("  REFRICAZ - Backend de Ubicaciones");
   console.log("========================================");
   console.log(`Servidor activo en el puerto ${PORT}`);
   console.log(`Health Check: http://127.0.0.1:${PORT}/`);
-  console.log(
-    `Ubicaciones: http://127.0.0.1:${PORT}/api/ubicaciones/Guadalajara`
-  );
-  console.log(
-  `CRUD Firestore: http://127.0.0.1:${PORT}/api/ubicaciones-guardadas`
-);
-  console.log("CORS: AllowAnyOrigin (*)");
+  console.log(`CORS Origen Permitido: ${CORS_ORIGIN}`);
   console.log("Presiona Ctrl + C para detener el servidor.");
 });
