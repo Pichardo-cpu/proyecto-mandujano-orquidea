@@ -8,7 +8,7 @@
 ## 1. Auditoría de Seguridad y Protección de Datos
 - [x] **Aislamiento de Claves:** El archivo `.gitignore` excluye `.env`, `.env.local` y credenciales de Firebase (`firebase-service-account*.json`).
 - [x] **Configuración de Plantilla:** Existe `.env.example` en la raíz para guiado de variables de entorno.
-- [x] **Seguridad de Dependencias:** Activas las alertas automáticas de **Dependabot** para monitoreo de vulnerabilidades npm en `/backend`.
+- [x] **Seguridad de Dependencias:** Activas las alertas automáticas de **Dependabot** y verificadas sin vulnerabilidades abiertas en `/backend`.
 - [x] **Protección CORS:** Definida la variable `ALLOWED_ORIGINS` para restricción de dominios autorizados en endpoints serverless.
 
 ---
