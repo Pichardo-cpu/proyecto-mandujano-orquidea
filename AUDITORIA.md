@@ -21,9 +21,9 @@
 ---
 
 ## 3. Plan de Pruebas y Validación Recomendada
-- [ ] **Pruebas de Integración API:** Validar endpoints del Chatbot IA (`/api/ai-chat.js`) con llaves de OpenAI.
-- [ ] **Auditoría Lighthouse:** Medir métricas de Rendimiento, Accesibilidad y SEO en el frontend.
-- [ ] **Simulación Firebase:** Ejecutar `firebase emulators:start` para validar reglas de seguridad de Firestore localmente.
+- [x] **Pruebas de Integración API:** Validar endpoints del Chatbot IA ( `/api/ai-chat.js` ) con llaves de OpenAI.
+- [x] **Auditoría Lighthouse:** Medir métricas de Rendimiento, Accesibilidad y SEO en el frontend.
+- [x] **Simulación Firebase:** Ejecutar `firebase emulators:start` para validar reglas de seguridad de Firestore localmente.
 
 ---
 
