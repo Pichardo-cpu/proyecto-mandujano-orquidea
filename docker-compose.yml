@@ -1,0 +1,59 @@
+# Proyecto académico REFRICAZ: todos los datos Docker son locales (demo-refricaz).
+services:
+  firestore:
+    build:
+      context: .
+      dockerfile: docker/firestore.Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 60s  # Permitir la exportación local de datos al detener Docker
+    environment:
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-refricaz}
+      JAVA_TOOL_OPTIONS: -Xmx512m
+    ports:
+      - "127.0.0.1:8081:8080" # Firestore en el navegador
+      - "127.0.0.1:9099:9099" # Authentication local
+      - "127.0.0.1:9199:9199" # Storage local
+    volumes:
+      - firestore_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8080 && nc -z 127.0.0.1 9099 && nc -z 127.0.0.1 9199"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 65s
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "3000"
+      CORS_ORIGIN: http://localhost:8080
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-demo-refricaz}
+      GCLOUD_PROJECT: ${FIREBASE_PROJECT_ID:-demo-refricaz}
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      firestore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('node:http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  firestore_data:

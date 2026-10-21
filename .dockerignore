@@ -1,0 +1,12 @@
+# Evita enviar datos privados incluso al contexto de compilación del frontend.
+.git
+.env
+.env.*
+!.env.example
+**/node_modules
+**/firebase-service-account*.json
+**/*.pem
+**/*.key
+.respaldo_practica_p2
+**/.firebase
+**/.vercel
