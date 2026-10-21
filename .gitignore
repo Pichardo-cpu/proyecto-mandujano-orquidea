@@ -2,10 +2,12 @@
 .env.*
 !.env.example
 node_modules/
+backend/node_modules/
 .vercel/
 .firebase/
 .vscode/
 .agents/
+.respaldo_practica_p2/
 firebase-service-account*.json
 backend/config/firebase-service-account.json
 backend/.env

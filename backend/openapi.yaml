@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: API de REFRICAZ - Ubicaciones
+  version: 1.0.0
+  description: |
+    Documentación de las rutas reales del backend académico de REFRICAZ.
+    Las operaciones de ubicaciones guardadas requieren el encabezado x-user-id.
+    Durante esta práctica los datos se almacenan en el emulador local de Firestore.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3000
+    description: Backend local (Docker)
+  - url: http://localhost:8080
+    description: Proxy del frontend (Docker)
+tags:
+  - name: Estado
+  - name: Ubicaciones
+  - name: Ubicaciones guardadas
+paths:
+  /:
+    get:
+      tags: [Estado]
+      summary: Verificar funcionamiento del backend
+      responses:
+        '200':
+          description: Backend en línea
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstadoServidor'
+  /api/ubicaciones/{criterio}:
+    get:
+      tags: [Ubicaciones]
+      summary: Buscar una ubicación de México por texto
+      description: Consulta el proveedor externo Nominatim. Requiere conexión a internet y puede estar sujeto a límites.
+      parameters:
+        - name: criterio
+          in: path
+          required: true
+          schema: { type: string, minLength: 2 }
+          example: Nezahualcóyotl
+      responses:
+        '200':
+          description: Ubicación localizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BusquedaUbicacion' }
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '404': { $ref: '#/components/responses/NoEncontrada' }
+        '502': { description: No fue posible contactar al proveedor de ubicaciones }
+        '503': { description: El proveedor de ubicaciones limitó la consulta }
+  /api/ubicaciones-guardadas:
+    get:
+      tags: [Ubicaciones guardadas]
+      summary: Listar las ubicaciones del usuario indicado
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Ubicaciones del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaUbicaciones'
+        '401': { $ref: '#/components/responses/SinUsuario' }
+    post:
+      tags: [Ubicaciones guardadas]
+      summary: Crear una ubicación guardada
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevaUbicacion'
+            example:
+              external_id: osm-12345
+              nombre: Prueba de ubicación
+              categoria: oficina
+              estado: Estado de México
+              municipio: Nezahualcóyotl
+              codigo_postal: '57000'
+              latitud: 19.4
+              longitud: -99.0
+              notas: Registro de prueba
+      responses:
+        '201':
+          description: Ubicación guardada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UbicacionIndividual'
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '401': { $ref: '#/components/responses/SinUsuario' }
+        '409': { $ref: '#/components/responses/Duplicada' }
+  /api/ubicaciones-guardadas/{id}:
+    get:
+      tags: [Ubicaciones guardadas]
+      summary: Consultar ubicación por ID
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ubicación consultada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UbicacionIndividual'
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '401': { $ref: '#/components/responses/SinUsuario' }
+        '404': { $ref: '#/components/responses/NoEncontrada' }
+    patch:
+      tags: [Ubicaciones guardadas]
+      summary: Actualizar las notas de una ubicación existente
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notas]
+              properties:
+                notas:
+                  type: string
+                  maxLength: 250
+                  example: Notas actualizadas
+      responses:
+        '200':
+          description: Ubicación actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UbicacionIndividual'
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '401': { $ref: '#/components/responses/SinUsuario' }
+        '404': { $ref: '#/components/responses/NoEncontrada' }
+    put:
+      tags: [Ubicaciones guardadas]
+      summary: Reemplazar las notas de una ubicación existente (misma validación que PATCH)
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notas]
+              properties:
+                notas:
+                  type: string
+                  maxLength: 250
+                  example: Notas actualizadas
+      responses:
+        '200':
+          description: Ubicación actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UbicacionIndividual'
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '401': { $ref: '#/components/responses/SinUsuario' }
+        '404': { $ref: '#/components/responses/NoEncontrada' }
+    delete:
+      tags: [Ubicaciones guardadas]
+      summary: Eliminar ubicación por ID
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Ubicación eliminada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: success }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      eliminado: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/DatosInvalidos' }
+        '401': { $ref: '#/components/responses/SinUsuario' }
+        '404': { $ref: '#/components/responses/NoEncontrada' }
+components:
+  parameters:
+    UserId:
+      name: x-user-id
+      in: header
+      description: Identificador de usuario para la práctica (ejemplo equipo-practica-2).
+      required: true
+      schema:
+        type: string
+        example: equipo-practica-2
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+      description: Identificador devuelto al crear el registro
+  responses:
+    DatosInvalidos:
+      description: Datos o parámetros inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    SinUsuario:
+      description: Falta el encabezado x-user-id
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NoEncontrada:
+      description: Ubicación no encontrada o ajena al usuario
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Duplicada:
+      description: La ubicación ya estaba guardada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    BusquedaUbicacion:
+      type: object
+      properties:
+        id: { type: string, example: relation-123456 }
+        nombre: { type: string }
+        categoria: { type: string }
+        estado: { type: string, nullable: true }
+        municipio: { type: string, nullable: true }
+        codigo_postal: { type: string, nullable: true }
+        latitud: { type: number, example: 19.4 }
+        longitud: { type: number, example: -99.0 }
+        recurso_visual: { type: string, format: uri }
+        fuente: { type: string, example: OpenStreetMap }
+    Error:
+      type: object
+      properties:
+        status: { type: string, example: error }
+        message: { type: string, example: Datos inválidos }
+    EstadoServidor:
+      type: object
+      properties:
+        status: { type: string, example: online }
+        message: { type: string, example: Servidor REFRICAZ funcionando }
+        fase: { type: integer, example: 3 }
+        server_time: { type: string, format: date-time }
+    NuevaUbicacion:
+      type: object
+      required: [external_id, nombre, categoria, estado, municipio, latitud, longitud]
+      properties:
+        external_id: { type: string, example: osm-12345 }
+        nombre: { type: string, example: Prueba de ubicación }
+        categoria: { type: string, example: oficina }
+        estado: { type: string, example: Estado de México }
+        municipio: { type: string, example: Nezahualcóyotl }
+        codigo_postal: { type: string, nullable: true }
+        latitud: { type: number, minimum: -90, maximum: 90, example: 19.4 }
+        longitud: { type: number, minimum: -180, maximum: 180, example: -99.0 }
+        recurso_visual: { type: string, format: uri, nullable: true }
+        notas: { type: string, maxLength: 250 }
+    Ubicacion:
+      allOf:
+        - $ref: '#/components/schemas/NuevaUbicacion'
+        - type: object
+          properties:
+            id: { type: string }
+            usuario_id: { type: string }
+            fuente: { type: string, example: OpenStreetMap }
+            fecha_creacion: { type: string, nullable: true, format: date-time }
+            fecha_actualizacion: { type: string, nullable: true, format: date-time }
+    UbicacionIndividual:
+      type: object
+      properties:
+        status: { type: string, example: success }
+        message: { type: string }
+        data: { $ref: '#/components/schemas/Ubicacion' }
+    ListaUbicaciones:
+      type: object
+      properties:
+        status: { type: string, example: success }
+        total: { type: integer, example: 0 }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Ubicacion' }

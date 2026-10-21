@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const http = require("node:http");
+const { servirDocumentacion } = require("./swagger-docs");
 
 const {
   manejarRutaUbicacionesGuardadas
@@ -44,6 +45,7 @@ function aplicarCors(req, res) {
 }
 
 const server = http.createServer((req, res) => {
+  if (servirDocumentacion(req, res)) return;
   if (aplicarCors(req, res)) {
     return;
   }

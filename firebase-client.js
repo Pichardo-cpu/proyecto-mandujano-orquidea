@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
     getFirestore,
+    connectFirestoreEmulator,
     collection,
     addDoc,
     deleteDoc,
@@ -18,6 +19,7 @@ import {
 import {
     createUserWithEmailAndPassword,
     getAuth,
+    connectAuthEmulator,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     signOut,
@@ -26,6 +28,7 @@ import {
 import {
     getDownloadURL,
     getStorage,
+    connectStorageEmulator,
     ref,
     uploadBytes
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
@@ -40,10 +43,26 @@ const firebaseConfig = {
     measurementId: "G-GG1H0MFF0E"
 };
 
+// Cuando el sitio corre en Docker de la práctica NO utiliza datos de producción.
+// En despliegue real (o fuera de localhost:8080) se conserva la configuración original.
+const enPracticaDocker = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+    && window.location.port === "8080";
+if (enPracticaDocker) {
+    Object.assign(firebaseConfig, {
+        apiKey: "demo-local", authDomain: "demo-refricaz.firebaseapp.com",
+        projectId: "demo-refricaz", storageBucket: "demo-refricaz.appspot.com",
+        messagingSenderId: "000000000", appId: "1:000000000:web:refricazdemo"
+    });
+}
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
+if (enPracticaDocker) {
+    connectFirestoreEmulator(db, "127.0.0.1", 8081);
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
+}
 
 const BOOTSTRAP_ADMIN_EMAILS = ["ali.ramses.perez.martinez@gmail.com"];
 

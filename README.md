@@ -6,6 +6,82 @@ Sitio web y backend de **REFRICAZ**, empresa mexicana de servicio técnico para 
 
 ---
 
+
+## Práctica 2: distribución de servicios web (Docker + OpenAPI)
+
+Esta práctica se realizó **sobre el mismo proyecto REFRICAZ del repositorio original**. El
+sitio público, el panel de administración, sus recursos gráficos y las funciones originales
+se conservan. Se incorporan archivos para distribución reproducible en Docker, documentación
+OpenAPI y Swagger UI. Véase `docs/P2_CAMBIOS_SOBRE_ORIGINAL.md` para identificar las modificaciones.
+
+**Integrantes:** Perez Martinez Ali Ramses; Zamora Ojeda Estrella Edith;
+Perez Martinez Grettell Garet; Mendoza Olmedo Ricardo; Mendez Millan Monserat Nizbeth.
+
+### Requisitos y ejecución con Docker
+
+- Docker Desktop con Docker Compose (en Windows, WSL 2); Git para clonar el repositorio.
+- En una computadora limpia, desde la raíz de este **mismo repositorio**:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+docker compose ps
+```
+
+Si estás en Bash, usa `cp .env.example .env`. Los comandos anteriores construyen el
+frontend Nginx, backend Node.js y la base de datos Firebase **emulada localmente**;
+no hacen cambios en la información de Firebase de producción.
+
+| Componente | Dirección local |
+|---|---|
+| Página original REFRICAZ | http://localhost:8080 |
+| Panel de administración original | http://localhost:8080/admin.html |
+| Prueba de conexión API | http://localhost:8080/estado-api.html |
+| API backend | http://localhost:3000 |
+| Swagger UI para probar endpoints | http://localhost:3000/api-docs/ |
+| Definición OpenAPI | http://localhost:3000/openapi.yaml |
+| Página de error personalizada | http://localhost:8080/ruta-no-existente |
+
+En Swagger, comprueba como mínimo: `GET /api/ubicaciones-guardadas`,
+`POST /api/ubicaciones-guardadas` y `GET /api/ubicaciones-guardadas/{id}`.
+Estas operaciones requieren el encabezado `x-user-id: equipo-practica-2`.
+Para probar desde una computadora limpia, seguir `docs/P2_GUIA_ENTREGA.md`.
+
+### Variables de entorno de P2
+
+| Variable | Propósito |
+|---|---|
+| `PORT` | Puerto del backend (3000 en el contenedor). |
+| `NODE_ENV` | Entorno de ejecución. |
+| `CORS_ORIGIN` | Dirección del frontend permitida por CORS. |
+| `FIREBASE_PROJECT_ID` | Proyecto ficticio usado en los emuladores. |
+| `FIRESTORE_EMULATOR_HOST` | Dirección de la base de datos emulada desde el backend. |
+| `OPENAI_API_KEY` | Opcional, no se necesita para las pruebas de esta práctica. |
+| `OPENAI_MODEL` | Modelo opcional de funciones del proyecto original. |
+| `ALLOWED_ORIGINS` | Orígenes para funciones serverless del despliegue original. |
+| `LEADS_WEBHOOK_URL` | Webhook opcional de las funciones originales. |
+| `FIREBASE_SERVICE_ACCOUNT_PATH` | Credencial opcional para despliegue fuera del modo Docker. |
+
+Nunca subas `.env`, `.env.local` o claves privadas de Firebase a GitHub.
+
+### Detener, alcance y licencia
+
+```powershell
+docker compose down
+```
+
+El volumen de Docker guarda la exportación del emulador al detenerlo con normalidad.
+No uses `docker compose down -v` si necesitas conservar los datos de prueba.
+Los endpoints serverless `/api/leads` y `/api/ai-chat` permanecen en el código
+original, pero **no se ejecutan en el backend Docker académico**.
+La geocodificación externa también puede requerir internet.
+
+**Distribución:** licencia MIT en `LICENSE`. El release `v1.0.0` se publica
+solo tras validar los contenedores y la clonación limpia. Las capturas deben
+ser reales y quedar en el documento final `P2_Distribucion_Equipo<N>.pdf`.
+
+---
+
 ## Contenido
 
 - [Características](#características)
