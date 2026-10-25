@@ -120,13 +120,32 @@ async function enviarLeadAFirebase(lead) {
     }
 }
 
-function registrarLead(origen, datos) {
+async function registrarLead(origen, datos) {
+    if (navigator.onLine === false) {
+        throw new Error(
+            "No tienes conexión. Conservamos los datos en esta página para que puedas reintentar."
+        );
+    }
+
+    if (!window.refricazFirebase?.guardarLead) {
+        throw new Error(
+            "El servicio de solicitudes no está disponible. Espera unos segundos e intenta de nuevo."
+        );
+    }
+
     const lead = construirLead(origen, datos);
-    enviarLeadAlBackend(lead);
-    enviarLeadAFirebase(lead).then((guardado) => {
-        if (!guardado && !window.refricazFirebase?.guardarLead) {
-            guardarLeadLocal(origen, datos);
-        }
+    const guardado = await enviarLeadAFirebase(lead);
+
+    if (!guardado) {
+        throw new Error(
+            "No pudimos confirmar el guardado. Tus datos siguen en esta página; intenta de nuevo o contáctanos por WhatsApp."
+        );
+    }
+
+    void enviarLeadAlBackend(lead);
+
+    return lead;
+}
     });
     return lead;
 }
