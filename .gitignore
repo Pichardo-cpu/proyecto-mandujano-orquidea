@@ -14,3 +14,8 @@ backend/.env
 *.log
 desktop.ini
 Thumbs.db
+.postman/
+node_modules/
+.env
+.env.*
+!.env.example
