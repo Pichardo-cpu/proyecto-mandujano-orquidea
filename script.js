@@ -146,9 +146,6 @@ async function registrarLead(origen, datos) {
 
     return lead;
 }
-    });
-    return lead;
-}
 
 function formularioAObjeto(form) {
     return Object.fromEntries(new FormData(form).entries());
