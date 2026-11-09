@@ -152,6 +152,11 @@ async function registrarLead(origen, datos) {
 }
 
 function formularioAObjeto(form) {
+    return Object.fromEntries(new FormData(form).entries());
+}
+}
+
+function formularioAObjeto(form) {
 
 function formularioAObjeto(form) {
     return Object.fromEntries(new FormData(form).entries());
