@@ -22,7 +22,7 @@ if (getApps().length === 0) {
     });
     db = getFirestore();
   } else {
-    console.warn("Firebase no configurado. Funciones de Firestore no disponibles.");
+    console.warn("Firebase no configurado. Firestore no disponible.");
   }
 } else {
   db = getFirestore();
