@@ -146,17 +146,9 @@ async function registrarLead(origen, datos) {
 
     return lead;
 }
-    void enviarLeadAlBackend(lead);
-
+    });
     return lead;
 }
-
-function formularioAObjeto(form) {
-    return Object.fromEntries(new FormData(form).entries());
-}
-}
-
-function formularioAObjeto(form) {
 
 function formularioAObjeto(form) {
     return Object.fromEntries(new FormData(form).entries());
